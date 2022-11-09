@@ -4,7 +4,6 @@ from multiprocessing import Process
 import multiprocessing
 
 seed = 0
-np.random.seed(seed)
 
 n_unique_ellipse = 20
 n_two_circles    = 20
@@ -28,11 +27,14 @@ n_trunc_twice_cartesian    = round(n_trunc_twice*ratio_cartesian)
 n_trunc_twice_polar        = round(n_trunc_twice*(1-ratio_cartesian))
 
 root = 'Data'
-suff = 'test'
+suff = '_test2'
 processes = []
 
 
 if __name__ == '__main__':
+    # put the generation of numpy seed in this if statement to avoid restarting the seed for every processes 
+    np.random.seed(seed)
+
     print("You have ",multiprocessing.cpu_count(), " CPUs.")
 
     cartesian = True 
