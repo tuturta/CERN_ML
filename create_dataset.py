@@ -7,11 +7,11 @@ import multiprocessing
 seed = 0
 #np.random.seed(seed)
 
-n_unique_ellipse = 1000
-n_two_circles    = 1000
-n_three_circles  = 1000
-n_trunc_once     = 1000
-n_trunc_twice    = 1000
+n_unique_ellipse = 200000
+n_two_circles    = 200000
+n_three_circles  = 200000
+n_trunc_once     = 200000
+n_trunc_twice    = 200000
 ratio_cartesian  = 0.5
 n_neighbours     = 10
 max_radius       = 10
@@ -68,17 +68,17 @@ cartesian = True
 
 
 '''
-EllipseDataset(root, n_uni_ellipse_cartesian,    max_radius, n_neighbours, cartesian, 0, False, 'Unique_Ellipse_cartesian'+suff+'.dt' )
+generate_random_samples( n_uni_ellipse_cartesian,    max_radius, n_neighbours, cartesian, 0, False, 'Unique_Ellipse_cartesian'+suff+'.npy' )
 print("Dataset2")
-EllipseDataset(root, n_1extra_circle_cartesian,  max_radius, n_neighbours, cartesian, 1, False, 'Two_Circles_cartesian'+suff+'.dt'    )
-EllipseDataset(root, n_2extra_circles_cartesian, max_radius, n_neighbours, cartesian, 2, False, 'Three_Circles_cartesian'+suff+'.dt'  )
-EllipseDataset(root, n_trunc_once_cartesian,     max_radius, n_neighbours, cartesian, 1, True,  'Truncated_Once_cartesian'+suff+'.dt' )
-EllipseDataset(root, n_trunc_twice_cartesian ,   max_radius, n_neighbours, cartesian, 2, True,  'Truncated_Twice_cartesian'+suff+'.dt')
+generate_random_samples( n_1extra_circle_cartesian,  max_radius, n_neighbours, cartesian, 1, False, 'Two_Circles_cartesian'+suff+'.npy'    )
+generate_random_samples( n_2extra_circles_cartesian, max_radius, n_neighbours, cartesian, 2, False, 'Three_Circles_cartesian'+suff+'.npy'  )
+generate_random_samples( n_trunc_once_cartesian,     max_radius, n_neighbours, cartesian, 1, True,  'Truncated_Once_cartesian'+suff+'.npy' )
+generate_random_samples( n_trunc_twice_cartesian ,   max_radius, n_neighbours, cartesian, 2, True,  'Truncated_Twice_cartesian'+suff+'.npy')
 
 cartesian = False
-EllipseDataset(root, n_uni_ellipse_polar,    max_radius, n_neighbours, cartesian, 0, False, 'Unique_Ellipse_polar'+suff+'.dt' )
-EllipseDataset(root, n_1extra_circle_polar,  max_radius, n_neighbours, cartesian, 1, False, 'Two_Circles_polar'+suff+'.dt'    )
-EllipseDataset(root, n_2extra_circles_polar, max_radius, n_neighbours, cartesian, 2, False, 'Three_Circles_polar'+suff+'.dt'  )
-EllipseDataset(root, n_trunc_once_polar,     max_radius, n_neighbours, cartesian, 1, True,  'Truncated_Once_polar'+suff+'.dt' )
-EllipseDataset(root, n_trunc_twice_polar ,   max_radius, n_neighbours, cartesian, 2, True,  'Truncated_Twice_polar'+suff+'.dt') 
+generate_random_samples( n_uni_ellipse_polar,    max_radius, n_neighbours, cartesian, 0, False, 'Unique_Ellipse_polar'+suff+'.npy' )
+generate_random_samples( n_1extra_circle_polar,  max_radius, n_neighbours, cartesian, 1, False, 'Two_Circles_polar'+suff+'.npy'    )
+generate_random_samples( n_2extra_circles_polar, max_radius, n_neighbours, cartesian, 2, False, 'Three_Circles_polar'+suff+'.npy'  )
+generate_random_samples( n_trunc_once_polar,     max_radius, n_neighbours, cartesian, 1, True,  'Truncated_Once_polar'+suff+'.npy' )
+generate_random_samples( n_trunc_twice_polar ,   max_radius, n_neighbours, cartesian, 2, True,  'Truncated_Twice_polar'+suff+'.npy') 
 '''
