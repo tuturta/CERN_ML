@@ -1,11 +1,9 @@
 # Import modules
-import random
 from tqdm import tqdm
 import numpy as np
 import torch
 from torch_geometric.data import Data, InMemoryDataset
 import scipy.spatial
-from multiprocessing import Process
 
 
 # create 11 equaly space angles between 0 et pi/2
@@ -132,7 +130,7 @@ def get_overlapping_circles_area(d, r1, r2):
     return r1**2*np.arccos((d**2 + r1**2 - r2**2)/(2*d*r1)) + r2**2*np.arccos((d**2 + r2**2 - r1**2)/(2*d*r2)) - 0.5*np.sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2))
 
 
-def generate_random_samples(n_samples, max_length, neighbours, cartesian = True, extra_circles = 0, truncated = False):
+def generate_random_samples(n_samples, max_length, neighbours, cartesian = True, extra_circles = 0, truncated = False, filename = 'data.npy'):
     '''
     Inputs:
     - n_samples: number of samples to create 
@@ -150,7 +148,12 @@ def generate_random_samples(n_samples, max_length, neighbours, cartesian = True,
     if n_samples == 0:
         return []
 
-    data_list = []
+    #data_list = []
+    labels = np.zeros(n_samples)
+    coords = []
+    edge_index = []
+    slices = np.zeros(n_samples + 1)
+
     density = np.random.choice([100, 1000, 10000], n_samples)/max_length
 
     if extra_circles == 0:
@@ -195,10 +198,21 @@ def generate_random_samples(n_samples, max_length, neighbours, cartesian = True,
             # To avoid to have less points that neighbours
             while len(points) < neighbours:
                 points, area = get_multiple_circles(density[i], radius_main[i], center_extra1[i], radius_extra1[i]*0.5, center_extra2[i], radius_extra2[i]*0.5, cartesian, truncated)
+        
 
-        data_list.append(create_graph(points, area, neighbours))
+        labels[i] = area
+        coords.append(points)
+        edge_index.append((get_edge_index(points,neighbours)))
+        slices[i+1] = len(points)
     
-    return data_list
+    data = {
+        'labels': labels,
+        'coords': np.vstack(coords),
+        'edge_index': np.hstack(edge_index),
+        'slices': slices
+    }
+        #data_list.append(create_graph(points, area, neighbours))
+    np.save('Data/raw/' + filename, data)
 
 
 def get_edge_index(points, neighbours):
@@ -206,7 +220,8 @@ def get_edge_index(points, neighbours):
     tree = scipy.spatial.cKDTree(points)
     _, ii = tree.query(points, neighbours)
     a = np.repeat(np.arange(len(points)),neighbours)
-    edge_index = torch.tensor(np.vstack((a, ii.flatten())), dtype = torch.long)
+    #edge_index = torch.tensor(np.vstack((a, ii.flatten())), dtype = torch.long)
+    edge_index = np.vstack((a, ii.flatten()))
     return edge_index
 
 
@@ -221,7 +236,6 @@ def create_graph(points, area, neighbours):
     edge_index = get_edge_index(points, neighbours)    
     # Create Data object
     graph = Data(x=sample, edge_index=edge_index, y=label)
-
     return graph
 
 
@@ -264,3 +278,5 @@ class EllipseDataset(InMemoryDataset):
             data_list = generate_random_samples(self.n_samples, self.max_radius, self.n_neighbours, self.cartesian, self.extra_circles, self.truncated) 
             data, slices = self.collate(data_list)
             torch.save((data, slices), self.processed_paths[0])
+
+### REWRITE THIS FUNCTION TO SAVE USING NUMPY AND PUT INTO A DATASET WHEN LOADING
