@@ -238,8 +238,7 @@ def create_graph(points, area, neighbours):
     graph = Data(x=sample, edge_index=edge_index, y=label)
     return graph
 
-
-class EllipseDataset(InMemoryDataset):
+#class EllipseDataset(InMemoryDataset):
     '''Definition of our class Dataset to construct datasets of ellipses and points both in radial and cartesian coordinates '''
     def __init__(self, root, n_samples, max_radius, neighbours, cartesian = True, extra_circles = 0, truncated = False, filename = 'dataset.pt', transform=None, pre_transform=None):
         '''
