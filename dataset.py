@@ -262,7 +262,7 @@ class EllipsesDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return [f'data_{idx}.dt' for idx in range(20)]
+        return [f'data_{idx}.dt' for idx in range(18)]
 
     def process(self):
         for k in range(len(self.processed_file_names)):
@@ -296,3 +296,56 @@ class EllipsesDataset(InMemoryDataset):
 
             data, slices = self.collate(data_list)
             torch.save((data, slices), self.processed_paths[k])
+
+class test(InMemoryDataset):
+    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
+        super().__init__(root, transform, pre_transform, pre_filter)
+
+    @property
+    def raw_file_names(self):
+        return ['Three_Circles_cartesian0.npz',
+                'Three_Circles_cartesian1.npz',
+                'Three_Circles_polar3.npz',
+                'Three_Circles_polar4.npz',
+                'Truncated_Once_cartesian0.npz',
+                'Truncated_Once_cartesian1.npz',
+                'Truncated_Once_polar3.npz',
+                'Truncated_Once_polar4.npz',
+                'Truncated_Twice_cartesian0.npz',
+                'Truncated_Twice_cartesian1.npz',
+                'Truncated_Twice_polar3.npz',
+                'Truncated_Twice_polar4.npz',
+                'Two_Circles_cartesian0.npz',
+                'Two_Circles_cartesian1.npz',
+                'Two_Circles_polar3.npz',
+                'Two_Circles_polar4.npz',
+                'Unique_Ellipse_cartesian0.npz',
+                'Unique_Ellipse_cartesian1.npz',
+                'Unique_Ellipse_polar2.npz',
+                'Unique_Ellipse_polar3.npz']
+
+    @property
+    def processed_file_names(self):
+        return ['data_0.dt']
+
+    def process(self):
+        j = 0
+        data_list = []
+        for filename in self.raw_file_names:
+            print('--- File ', j+1, '/', len(self.raw_file_names), ' ---')
+            with np.load(osp.join(self.raw_dir, filename), allow_pickle = True) as data:
+                coords     = data['coords']
+                slices     = data['slices'].astype(int)
+                labels     = data['labels']
+                edge_index = data['edge_index']
+                
+            for i in tqdm(range(5000)):
+                idx1 = slices[i]
+                idx2 = slices[i+1]
+                data_list.append(create_graph(coords[idx1:idx2, :], edge_index[:, idx1*10:idx2*10], labels[i]))
+            j += 1
+            
+        data, slices = self.collate(data_list)
+        torch.save((data, slices), self.processed_paths[0])
+        
+
