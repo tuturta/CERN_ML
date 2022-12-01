@@ -232,11 +232,10 @@ def create_graph(points, edge_index_, area):
     return graph
 
 
-class EllipsesDataset(InMemoryDataset):
+class EllipsesDataset(Dataset):
     def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
         super().__init__(root, transform, pre_transform, pre_filter)
-        self.data, self.slices = torch.load(self.processed_paths[0])
-
+        self.samples_per_file = 50000
     @property
     def raw_file_names(self):
         return ['Three_Circles_cartesian0.npz',
@@ -296,6 +295,27 @@ class EllipsesDataset(InMemoryDataset):
 
             data, slices = self.collate(data_list)
             torch.save((data, slices), self.processed_paths[k])
+    
+    def __len__(self):
+        return int(len(self.processed_paths)*self.samples_per_file)
+
+    def __getitem__(self, idx):
+        # compute the file number rounding down the division below
+        k = int(idx/self.samples_per_file)
+        
+        # load the file k
+        data, dict = torch.load(self.processed_paths[k])
+
+        # compute the index of the slice
+        s_idx = idx%self.samples_per_file
+        # Extract sample in file k at index s_idx
+        x = data.x[dict['x'][s_idx].item():dict['x'][s_idx+1].item()] 
+        y = data.y[dict['y'][s_idx].item():dict['y'][s_idx+1].item()]
+        edge_index = data.edge_index[:, dict['edge_index'][s_idx].item():dict['edge_index'][s_idx+1].item()] 
+
+        return Data(x=x, edge_index=edge_index, y=y)
+
+
 
 class test(InMemoryDataset):
     def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
