@@ -3,3 +3,6 @@ Figures/
 History/
 __pycache__/
 .ipynb_checkpoints/
+runs/
+Figures/
+Backup/
