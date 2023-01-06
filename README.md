@@ -7,7 +7,7 @@
     ├── train_model.py          # Script used to train the model on SCITAS supercomputer.
     ├── sample_methods.py       # All the methods related to the creation of the training dataset 
     ├── NN_methods.py           # All the methods related to the training of the GNN models
-    ├── Results_analysis.ipynb  # Analysis of predictions made by GNN models
+    ├── results_analysis.ipynb  # Analysis of predictions made by GNN models
     ├── Docs                    
     │   ├── requirement.txt     # Packages required to run the project
     │   └── paper.pdf           # Report of this project
