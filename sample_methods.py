@@ -1,5 +1,6 @@
 # Import modules
 from tqdm import tqdm
+from glob import glob
 import numpy as np
 import scipy.spatial
 
@@ -31,6 +32,7 @@ def get_ellipse(density, length, angle = 0, cartesian = True):
     
     # Compute the area 
     area = get_ellipse_area(a,b)
+    print('Number of points', len(points))
 
     return points, area
 
@@ -127,7 +129,7 @@ def get_overlapping_circles_area(d, r1, r2):
     return r1**2*np.arccos((d**2 + r1**2 - r2**2)/(2*d*r1)) + r2**2*np.arccos((d**2 + r2**2 - r1**2)/(2*d*r2)) - 0.5*np.sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2))
 
 
-def generate_random_samples(n_samples, max_length, neighbours, cartesian = True, extra_circles = 0, truncated = False, filename = 'data.npy'):
+def generate_random_samples(n_samples, max_length, neighbours, cartesian = True, extra_circles = 0, truncated = False, filenames = ['data.npy']):
     '''
     Inputs:
     - n_samples: number of samples to create 
@@ -141,6 +143,7 @@ def generate_random_samples(n_samples, max_length, neighbours, cartesian = True,
     - list of n_samples Data objects
     '''
     # if no samples, stop the function
+    min_length = 4
     if n_samples == 0:
         return []
 
@@ -150,27 +153,34 @@ def generate_random_samples(n_samples, max_length, neighbours, cartesian = True,
     edge_index = []
     slices = np.zeros(n_samples + 1)
 
-    density = np.random.uniform(0.015, 0.075, (n_samples,))
+    density = np.random.uniform(0.0010, 0.0060, (n_samples,))
 
     if extra_circles == 0:
-        length = np.random.uniform(1, max_length, (n_samples, 2))
+        length = np.random.uniform(min_length, max_length, (n_samples, 2))
         #angles = np.random.uniform(0, np.pi, n_samples)
 
     
     if extra_circles >= 1:
-        radius_main   = np.random.uniform(4,max_length, n_samples)
-        # r1 < R/2 to avoid that r1 erase completely the main circle
-        radius_extra1 = np.random.uniform(2*density, 0.25*radius_main, n_samples)
-        center_extra1 = np.random.uniform((radius_extra1+density*2)[:, np.newaxis], max_length, (n_samples,2))
-
+        radius_main   = np.random.uniform(min_length,max_length, n_samples)
+        # r1 < R/4 to avoid that r1 erase completely the main circle
+        radius_extra1 = np.random.uniform(2*density, 0.5*radius_main, n_samples)
+        if truncated:
+            center_extra1 = np.random.uniform((radius_extra1 + 2*density)[:, np.newaxis], (radius_main + radius_extra1)[:, np.newaxis], (n_samples,2))
+        else: 
+            center_extra1 = np.random.uniform((radius_main - radius_extra1)[:, np.newaxis], (max_length - radius_extra1)[:, np.newaxis], (n_samples,2))
+        
         # set to zero by default
         radius_extra2 = np.zeros(n_samples)
         center_extra2 = np.zeros((n_samples,2))
     
     if extra_circles == 2:
-        radius_extra2 = np.random.uniform(2*density, 0.25*radius_main, n_samples)
-        center_extra2 = np.random.uniform((radius_extra2+2*density)[:, np.newaxis], max_length, (n_samples,2))
-        
+        radius_extra2 = np.random.uniform(2*density, 0.5*radius_main, n_samples)
+        if truncated:
+            center_extra2 = np.random.uniform((radius_extra2 + 2*density)[:, np.newaxis], (radius_main + radius_extra2)[:, np.newaxis], (n_samples,2))
+        else: 
+            center_extra2 = np.random.uniform((radius_main - radius_extra2)[:, np.newaxis], (max_length - radius_extra2)[:, np.newaxis], (n_samples,2))
+
+
         # To avoid triple intersection between circles
         cond = np.linalg.norm(center_extra1-center_extra2, axis =1) < (radius_extra1 + radius_extra2)
         while cond.any(): 
@@ -181,8 +191,9 @@ def generate_random_samples(n_samples, max_length, neighbours, cartesian = True,
 
     for i in tqdm(range(n_samples)):  
         if extra_circles == 0:
-            points, area = get_ellipse(density[i], length[i], cartesian)
 
+            # generate an ellipse and compute its area 
+            points, area = get_ellipse(density[i], length[i], angle = 0, cartesian = cartesian)
             
             # To avoid to have less points that neighbours
             while len(points) < neighbours:
@@ -196,12 +207,18 @@ def generate_random_samples(n_samples, max_length, neighbours, cartesian = True,
             while len(points) < neighbours:
                 points, area = get_multiple_circles(density[i]*2, radius_main[i], center_extra1[i], radius_extra1[i]*0.5, center_extra2[i], radius_extra2[i]*0.5, cartesian, truncated)
         
-        labels[i] = area
-        coords.append(points)
-        edge_index.append((get_edge_index(points,neighbours)))
+        if len(filenames) == 1:
+            labels[i] = area
+            coords.append(points)
+            edge_index.append((get_edge_index(points,neighbours)))
+        else:
+            np.savez_compressed('Data/processed/' + filenames[i], label = area, x = points, edge_index = get_edge_index(points,neighbours))
+        
         slices[i+1] = len(points) + slices[i]
+
     print("Total_point",slices[-1])
-    np.savez_compressed('Data/raw/' + filename, labels = labels, coords = np.vstack(coords), edge_index = np.hstack(edge_index), slices = slices)
+    if len(filenames) == 1:
+        np.savez_compressed('Data/processed/' + filenames[0], labels = labels, coords = np.vstack(coords), edge_index = np.hstack(edge_index), slices = slices)
 
 
 def get_edge_index(points, neighbours):
@@ -211,3 +228,4 @@ def get_edge_index(points, neighbours):
     a = np.repeat(np.arange(len(points)),neighbours)
     edge_index = np.vstack((a, ii.flatten()))
     return edge_index
+

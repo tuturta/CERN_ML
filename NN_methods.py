@@ -7,7 +7,7 @@ from torch_geometric.data import Dataset, Data, InMemoryDataset
 from torch_geometric.nn import GCNConv, SAGEConv
 from torch_geometric.nn import global_mean_pool
 import os.path as osp
-
+import glob
 
 class GCN(torch.nn.Module):
     def __init__(self, hidden_channels):
@@ -129,6 +129,7 @@ class EarlyStopping():
 
 
 def save_checkpoint(epoch, loss, timestamp, model, optimizer):
+    print('A checkpoint has been saved!')
     torch.save({
             'epoch': epoch,
             'model_state_dict': model.state_dict(),
@@ -136,8 +137,8 @@ def save_checkpoint(epoch, loss, timestamp, model, optimizer):
             'loss': loss,
             }, 'History/checkpoint' + timestamp + '.pt')
 
-def load_checkpoint(model, optimizer, load_path):
-    checkpoint = torch.load(load_path)
+def load_checkpoint(model, optimizer, device, load_path):
+    checkpoint = torch.load(load_path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
@@ -364,3 +365,33 @@ class test2(InMemoryDataset):
             
         data, slices = self.collate(data_list)
         torch.save((data, slices), self.processed_paths[0])
+
+class Circles_Dataset(Dataset):
+    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
+        self.files = glob.glob(root + '/*')
+        super().__init__(root, transform, pre_transform, pre_filter)
+
+
+    @property
+    def processed_file_names(self):
+        return self.files
+
+    def len(self):
+        return len(self.files)
+
+    def get(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        data = np.load(self.files[idx], allow_pickle=True)
+        edge_index = data['edge_index']
+        
+        # normalize the coordinates by the maximum length during the creation of samples  
+        coords = data['x']/15 
+
+        # Normalize the area by the maximum area possible : 15x15x4
+        label = data['label']/(15*15*4)
+
+        graph = create_graph(coords, edge_index, label)
+
+        return graph
