@@ -1,6 +1,6 @@
 *This project was done in the framework of a semester project at CERN in the first year of the Master. More details on the background and results are available in [this paper](Docs/paper.pdf).*
 
-# Structure
+# Structure
 
 
     ├── create_sample.py        # Script used to generate the model on SCITAS supercomputer  
