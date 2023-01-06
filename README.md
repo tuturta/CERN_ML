@@ -8,11 +8,11 @@
     ├── sample_methods.py       # All the methods related to the creation of the training dataset 
     ├── NN_methods.py           # All the methods related to the training of the GNN models
     ├── results_analysis.ipynb  # Analysis of predictions made by GNN models
-    ├── **Docs**                    
+    ├── ***Docs***                    
     │   ├── requirement.txt     # Packages required to run the project
     │   └── paper.pdf           # Report of this project
     │ 
-    └── **Data**
+    └── ***Data***
         ├── Analysis_of_results # Folder with all the dataframe generated during the analysis part in .pkl format
         └── CERN_DAs            # Folder with all the DAs data in .npz format
 
